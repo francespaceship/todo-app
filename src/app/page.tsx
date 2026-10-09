@@ -7,17 +7,18 @@ import { GoalPanel } from "@/components/GoalPanel";
 import { PlanPanel, type PlanDraft } from "@/components/PlanPanel";
 import { ProgressBar } from "@/components/ProgressBar";
 import { TodoForm, draftFrom, type TodoDraft } from "@/components/TodoForm";
+import { NavIcon, type IconName } from "@/components/Icons";
 import { LoginScreen } from "@/components/LoginScreen";
 import { ApiError, api, today } from "@/lib/client";
 import { COLUMNS, STATUS_LABEL, type GoalItem, type PlanItem, type Status, type TodoItem } from "@/lib/types";
 import { addDays, mondayOf, weekEnd } from "@/lib/week";
 
 type Section = "dashboard" | "todos" | "plans" | "goals";
-const SECTIONS: { id: Section; label: string; icon: string }[] = [
-  { id: "dashboard", label: "대시보드", icon: "📊" },
-  { id: "todos", label: "할 일", icon: "✅" },
-  { id: "plans", label: "주간 계획", icon: "🗓️" },
-  { id: "goals", label: "1년 목표", icon: "🎯" },
+const SECTIONS: { id: Section; label: string; icon: IconName }[] = [
+  { id: "dashboard", label: "대시보드", icon: "dashboard" },
+  { id: "todos", label: "할 일", icon: "todos" },
+  { id: "plans", label: "주간 계획", icon: "plans" },
+  { id: "goals", label: "1년 목표", icon: "goals" },
 ];
 type View = "daily" | "weekly";
 const VIEW_LABEL: Record<View, string> = { daily: "일일", weekly: "주간" };
@@ -212,7 +213,7 @@ export default function Home() {
           {SECTIONS.map((s) => (
             <button key={s.id} className={`nav-item${s.id === section ? " active" : ""}`}
               aria-current={s.id === section ? "page" : undefined} onClick={() => setSection(s.id)}>
-              <span className="nav-icon" aria-hidden="true">{s.icon}</span>
+              <span className="nav-icon"><NavIcon name={s.icon} /></span>
               {s.label}
             </button>
           ))}

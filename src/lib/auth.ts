@@ -74,3 +74,23 @@ export function githubConfig(): { clientId: string; clientSecret: string } | nul
 
 /** In production the redirect origin must be pinned by APP_URL, not taken from the Host header. */
 export const originIsPinned = () => process.env.NODE_ENV !== "production" || Boolean(process.env.APP_URL);
+
+/**
+ * Local-only shortcut that skips GitHub login. Never active in production, only when
+ * DEV_AUTH_BYPASS=1 is set explicitly, and only for requests addressed to localhost.
+ */
+export function devBypassEnabled(req: Request): boolean {
+  if (process.env.NODE_ENV === "production" || process.env.DEV_AUTH_BYPASS !== "1") return false;
+  return ["localhost", "127.0.0.1", "[::1]"].includes(new URL(req.url).hostname);
+}
+
+export async function devLogin() {
+  await connectDb();
+  const user = await User.findOneAndUpdate(
+    { githubId: -1 },
+    { $setOnInsert: { username: "dev-user", avatarUrl: "" } },
+    { upsert: true, returnDocument: "after", setDefaultsOnInsert: true },
+  );
+  const { token } = await createSession(user._id);
+  return { user, token };
+}

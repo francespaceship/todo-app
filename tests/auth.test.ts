@@ -320,3 +320,60 @@ describe("assignLegacyData migration", () => {
     expect(await Todo.countDocuments({ userId: { $exists: true } })).toBe(0);
   });
 });
+
+describe("local dev login bypass (GET /api/me)", () => {
+  const env = process.env as Record<string, string | undefined>;
+  const saved = { node: env.NODE_ENV, flag: env.DEV_AUTH_BYPASS };
+  const meAt = (url: string, cookie?: string) => me(new Request(url, { headers: cookie ? { cookie } : {} }));
+
+  afterEach(() => {
+    env.NODE_ENV = saved.node;
+    if (saved.flag === undefined) delete env.DEV_AUTH_BYPASS;
+    else env.DEV_AUTH_BYPASS = saved.flag;
+  });
+
+  it("is off by default: anonymous requests stay 401", async () => {
+    delete env.DEV_AUTH_BYPASS;
+    expect((await meAt("http://localhost:3000/api/me")).status).toBe(401);
+    expect(await Session.countDocuments()).toBe(0);
+  });
+
+  it("with the flag on localhost it signs in as dev-user and sets a working session cookie", async () => {
+    env.DEV_AUTH_BYPASS = "1";
+    const res = await meAt("http://localhost:3000/api/me");
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ username: "dev-user" });
+    const token = cookieValue(res, "session")!;
+    expect(token).toHaveLength(64);
+    expect(res.headers.getSetCookie().find((c) => c.startsWith("session="))).toMatch(/HttpOnly/i);
+
+    // The cookie works for real data endpoints, and a repeat call reuses the same dev user.
+    const { GET: listTodos } = await import("@/app/api/todos/route");
+    const todos = await listTodos(new Request("http://localhost:3000/api/todos", { headers: { cookie: `session=${token}` } }));
+    expect(todos.status).toBe(200);
+    await meAt("http://localhost:3000/api/me");
+    expect(await User.countDocuments({ githubId: -1 })).toBe(1);
+  });
+
+  it("an existing real session is never replaced by the dev user", async () => {
+    env.DEV_AUTH_BYPASS = "1";
+    const { token } = await loginAs({ id: 5, login: "mona", avatar_url: "" });
+    const res = await meAt("http://localhost:3000/api/me", `session=${token}`);
+    expect(await res.json()).toMatchObject({ username: "mona" });
+    expect(cookieValue(res, "session")).toBeUndefined();
+  });
+
+  it("is ignored in production even when the flag is set", async () => {
+    env.DEV_AUTH_BYPASS = "1";
+    env.NODE_ENV = "production";
+    expect((await meAt("http://localhost:3000/api/me")).status).toBe(401);
+    expect(await User.countDocuments({ githubId: -1 })).toBe(0);
+  });
+
+  it("is ignored for requests that are not addressed to localhost", async () => {
+    env.DEV_AUTH_BYPASS = "1";
+    expect((await meAt("https://todo-app-mu-six-41.vercel.app/api/me")).status).toBe(401);
+    expect((await meAt("http://192.168.0.5:3000/api/me")).status).toBe(401);
+    expect(await Session.countDocuments()).toBe(0);
+  });
+});

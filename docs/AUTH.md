@@ -49,3 +49,13 @@ MONGODB_URI=mongodb://127.0.0.1:27017/todo npm run migrate:owner -- <github-user
 - 해당 username이 아직 로그인한 적 없거나, 같은 username의 계정이 둘 이상이거나, 이관할 주간 계획이 이미 있는 계획과 기간이 겹치면 아무것도 바꾸지 않고 이유와 함께 종료합니다.
 - 실행 시 Node가 `MODULE_TYPELESS_PACKAGE_JSON` 경고를 한 줄 출력하지만 동작에는 영향이 없습니다.
 - `npm run dev:local`의 데이터는 `.data/mongo`에 있고 주소는 `mongodb://127.0.0.1:27018/todo`입니다.
+
+## 5. 로컬에서 GitHub 로그인 건너뛰기 (개발 전용)
+
+`npm run dev:local`은 `DEV_AUTH_BYPASS=1`로 서버를 띄웁니다. 이때 `http://localhost:3000`에 로그인 없이 접속하면 `/api/me`가 `dev-user`라는 로컬 사용자로 자동 로그인시키고 메인 화면을 보여 줍니다.
+
+- 아래 조건을 **모두** 만족할 때만 동작합니다: `NODE_ENV`가 production이 아님, `DEV_AUTH_BYPASS=1`, 요청 주소가 `localhost`/`127.0.0.1`.
+- Vercel 같은 프로덕션 배포에서는 환경변수가 있어도 동작하지 않습니다. 그래도 Vercel에는 이 변수를 넣지 마세요.
+- 진짜 GitHub 로그인을 로컬에서 시험하려면 `DEV_AUTH_BYPASS=0 npm run dev:local`로 실행하세요.
+- `dev-user`의 데이터는 실제 GitHub 사용자와 분리됩니다.
+

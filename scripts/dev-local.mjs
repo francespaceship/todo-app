@@ -13,7 +13,8 @@ const uri = mongod.getUri("todo");
 console.log(`MongoDB: ${uri}`);
 
 const app = spawn("npx", ["next", "dev", "-p", "3000"], {
-  env: { ...process.env, MONGODB_URI: process.env.MONGODB_URI ?? uri },
+  // DEV_AUTH_BYPASS skips GitHub login on localhost only (see docs/AUTH.md); it is ignored in production.
+  env: { ...process.env, MONGODB_URI: process.env.MONGODB_URI ?? uri, DEV_AUTH_BYPASS: process.env.DEV_AUTH_BYPASS ?? "1" },
   stdio: "inherit",
   shell: process.platform === "win32",
 });
