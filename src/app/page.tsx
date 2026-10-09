@@ -273,7 +273,7 @@ export default function Home() {
                   )}
                 </>
               )}
-              <button onClick={openNew}>+ 할 일 추가</button>
+              <button className="primary" onClick={openNew}>+ 할 일 추가</button>
             </div>
 
             {form && (

@@ -61,7 +61,7 @@ export function PlanPanel({ plans, goals, selectedId, onSelect, onSave, onDelete
           {error && <p className="error" role="alert">{error}</p>}
         </form>
       ) : (
-        <button onClick={() => setEditing({ id: null, draft: { title: "", startDate: defaultStart, goalId: null } })}>
+        <button className="primary" onClick={() => setEditing({ id: null, draft: { title: "", startDate: defaultStart, goalId: null } })}>
           + 주간 계획 추가
         </button>
       )}

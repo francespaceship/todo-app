@@ -56,7 +56,7 @@ export function GoalPanel({ goals, plans, onSave, onDelete }: {
           {error && <p className="error" role="alert">{error}</p>}
         </form>
       ) : (
-        <button onClick={() => setEditing({ id: null, title: "", year: String(new Date().getFullYear()) })}>
+        <button className="primary" onClick={() => setEditing({ id: null, title: "", year: String(new Date().getFullYear()) })}>
           + 1년 목표 추가
         </button>
       )}
